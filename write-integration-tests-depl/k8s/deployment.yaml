@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-comm-bus
+  namespace: ac-infra
+  labels:
+    app: agent-comm-bus
+    tier: messaging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: agent-comm-bus
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: agent-comm-bus
+    spec:
+      containers:
+        - name: bus
+          image: acprompt/agent-comm-bus:latest
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: BUS_PORT
+              value: "8080"
+            - name: AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: bus-auth-secret
+                  key: token
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: agent-comm-bus

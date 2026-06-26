@@ -1,0 +1,12 @@
+{
+  "name": "agent-comm-bus-tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:integration": "jest --config jest.integration.js --forceExit --detectOpenHandles",
+    "test:ci": "jest --config jest.integration.js --ci --coverage --forceExit"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
